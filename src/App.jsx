@@ -52,7 +52,7 @@ export const App = () => {
 
     useEffect(() => {
         data.forEach((item, id) => {
-            index.add(id, ...Object.values(item));
+            index.add(id, Object.values(item)[1]);
         });
     }, [data])
 
