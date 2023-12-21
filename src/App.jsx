@@ -1,53 +1,74 @@
-import { useState } from 'react';
-import data from './searchAssets.json';
+import { useEffect, useState } from 'react';
+// import def from './searchAssets.json';
 import FlexSearch from 'flexsearch';
 
 export const App = () => {
-    console.log(data.length);
+    const [data, setData] = useState([]);
     const [searchTerm, setsearchTerm] = useState('');
     const [results, setResults] = useState([]);
-    const index = new FlexSearch({
+    const [file, setFile] = useState();
+    const [index, setIndex] = useState(new FlexSearch({
         tokenize: 'reverse',
         language: 'en',
         document: {
             id: 'id',
             name: ['text']
         }
-    });
+    }));
 
-    data.forEach((item, id) => {
-        index.add(id, item.display_name);
-    });
+    // data.forEach((item, id) => {
+    //     index.add(id, ...Object.values(item));
+    // });
 
     const search = (e) => {
-        console.log(e);
         const term = e.target.value;
         setsearchTerm(term);
 
-        const resultIds = index.search(term);
+        const resultIds = index.search(e.target.value);
 
         let resultData = [];
 
-        data.forEach((item, index)=>{
-            resultIds.forEach((id)=>{
-                if(id===index){
+        data.forEach((item, i) => {
+            resultIds.forEach((id) => {
+                if (id === i) {
                     resultData.push(item);
                 }
             })
         });
-
         setResults(resultData);
 
     }
 
+    const useJson = (e) => {
+        var reader = new FileReader();
+        reader.onload = onReaderLoad;
+        reader.readAsText(e.target.files[0]);
+    }
+
+    function onReaderLoad(event) {
+        setFile(true);
+        setData(JSON.parse(event.target.result));
+    }
+
+    useEffect(() => {
+        data.forEach((item, id) => {
+            index.add(id, ...Object.values(item));
+        });
+    }, [data])
+
     return (
         <div className='m-auto'>
-            <input value={searchTerm} onChange={search}/>
-            <div>
-                {results.map((item, index)=>{
-                    return <p key={index}>{item.display_name}</p>
-                })}
-            </div>
+            {file && (
+                <>
+                    <input className='inp' value={searchTerm} onChange={search} />
+                    <div>
+                        {results.map((item, index) => {
+                            return <p key={index}>{Object.entries(item)[0][1]}</p>
+                        })}
+                    </div>
+                </>
+            )}
+            {!file && <input type='file' onChange={useJson} />}
         </div>
     );
 }
